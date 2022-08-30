@@ -1,29 +1,69 @@
 import numpy as np
 from matplotlib import pyplot as plt
+import scipy.signal 
 
 class chirp:
     def __init__(self, slope, bandwidth, f0):
         self.slope = slope
         self.bandwidth = bandwidth
         self.f0 = f0
-        self.duration = self.bandwidth/slope
-
-    def _signal_value(self, t):
-        return np.cos(self.slope*np.square(t)+self.f0*t)
-
+        self.duration = self.bandwidth/self.slope
 
     def signal_t(self, t, t0):
-        t_shifted = t-t0
-        signal = np.zeros_like(t)
-        nonzero = (t_shifted>0)&(t_shifted<self.duration)
-        signal[nonzero] = self._signal_value(t[nonzero])
 
+        signal = scipy.signal.chirp(t, f0=0, f1=1500, t1=T)
         return signal
 
+# class Radar:
+#     def __init__(self, time_cof):
+#         self.time_cof = time_cof
+#         # add necassery tasks
+
+#     def send_signal(self):
+#         pass
+
+#     def process_signal(self):
+
+
+def plot_spectrogram(title, w, fs):
+
+    ff, tt, Sxx = scipy.signal.spectrogram(w, fs=fs, nperseg=256, nfft=576)
+    plt.pcolormesh(tt, ff[:145], Sxx[:145], cmap='gray_r', shading='gouraud')
+    plt.title(title)
+    plt.xlabel('t (sec)')
+    plt.ylabel('Frequency (Hz)')
+    plt.grid()
+    # def signal_fft()
+
+
 if __name__ == "__main__":
-    thing = chirp(slope = 1, bandwidth=10, f0=10)
-    t = np.linspace(0,20,2000)
-    t0 = 5
-    plt.plot(t,thing.signal_t(t,t0))
-    plt.show()
+
+    fs = 500
+    T = 1
+    t = np.arange(0, int(T*fs)) / fs 
+    w = scipy.signal.chirp(t,f0=0,f1= 5*fs, t1=T)
+
     
+    plot_spectrogram(f'Quadratic Chirp, f(0)=1500, f({T})=250', w, fs)
+    plt.plot(t,w)
+    plt.show()
+
+    # In the below functions we are will return the time intervals that the frames collide
+
+class FrameConfig:
+
+    def __init__(self, ):
+            # chirpStartIdx, chipEndIdx, numLoops, numFrames, framePeriodicity, triggerSelect, frameTriggerDelay
+        pass
+
+class ChirpConfig:
+
+    def __init__(self, ):
+        # id, f0, idleTime, adcStartTime, rampEndTime, txOutPower, txPhaseShifter, freqSlopeConst, txStartTime, numAdcSamples, digOutSampleRate, hpfCornerFreq1, hpfCornerFreq2, rxGain
+        pass
+
+
+
+# example chirp
+
+# Bens recomended chirp frame chirp1 = ChirpConfig(0,77,2,0,50,0,0,0,0,10000,0,0,0,30) 
