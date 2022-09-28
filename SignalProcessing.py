@@ -2,7 +2,11 @@ from numpy import fft
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy import signal as sig
-from BasicSystem import RecievedChirp
+from BasicSystem import IdealRecievedChirp
+
+# This file simulates the recieved chirp of an ideal situation. Where Tx and Rx are chirping a the same time
+# The results show that the message can be transmitted and recieved effectivly 
+# The next step will be to simulate the reception of offset transmitter and reciever chirps.
 
 class DataFrame:
     def __init__(self,flo,bandwidth, Fs, N):
@@ -18,13 +22,13 @@ class DataFrame:
 
     def get_data_frame(self, data_string, chirp_offset):
         frequencies = self.string_to_frequency(data_string)
-        data_frame = [ self.generate_chirp(frequencies[i]) for i in range(len(frequencies))]
+        data_frame = [self.generate_chirp(frequencies[i]) for i in range(len(frequencies))]
 
         self.dataframe = data_frame
         return self.dataframe
 
     def generate_chirp(self,f0):
-        return RecievedChirp(f0,self.flo,0,0,self.Fs,self.chirp_duration)
+        return IdealRecievedChirp(f0,self.flo,0,0,self.Fs,self.chirp_duration)
 
     def string_to_frequency(self,string):
         return [(ord(string[i])+1)*self.offset_increments + self.flo for i in range(len(string))]
@@ -35,6 +39,7 @@ class DataFrame:
 
         self.fft = ffts
         return ffts
+              
 
 if __name__ == "__main__": 
 
@@ -73,18 +78,3 @@ if __name__ == "__main__":
         ascii_value = round((peak) / frame.offset_increments) - 1
         output_string += chr(round(ascii_value))
     print(output_string)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

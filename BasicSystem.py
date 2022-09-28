@@ -10,7 +10,9 @@ def filter(sample_freq, cut_off, signal):
     y = sig.filtfilt(b,a,signal)
     return y
 
-def RecievedChirp(f0,flo,theta,f0_bandwidth,sample_rate,duration,noise=0.0,cut_off=50e6):
+
+
+def IdealRecievedChirp(f0,flo,theta,f0_bandwidth,sample_rate,duration,noise=0.0,cut_off=50e6):
 
     n = int(1 + (2*(f0+flo+f0_bandwidth))//sample_rate)
     inter_sample_rate = n*sample_rate

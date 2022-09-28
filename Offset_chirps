@@ -1,0 +1,119 @@
+from turtle import st
+from scipy import signal as sig
+from matplotlib import pyplot as plt
+import numpy as np
+import struct
+
+class OffsetFrame:
+    def __init__(self, IF, chirp_duration,offset,chirp_offtime,fs,bandwidth,encoding_function):
+        self.IF = IF 
+        self.chirp_duration = chirp_duration
+        self.offset = offset
+        self.chirp_offtime = chirp_offtime
+        self.fs = fs
+        self.bandwidth = bandwidth
+
+        self.encoding_function = encoding_function
+        self.total_chirp_duration = self.chirp_duration + self.chirp_offtime
+
+
+    def init_data_frame(self):
+        
+        self.no_chirps = len(self.data_frame)
+        self.get_chirp_ranges()
+        self.write_frame()
+
+    def get_chirp_range(self,chirp_no):
+        
+        chirp_start_index = self.chirp_range_index[0][chirp_no]
+        chirp_stop_index = self.chirp_range_index[1][chirp_no]
+        return chirp_start_index, chirp_stop_index
+
+    def chirp_write(self,t,data):
+        return self.encoding_function(t,data,self.IF,self.bandwidth)
+        
+    def write_frame(self):
+
+        # initialising frame data
+        total_frame_time = (1+self.no_chirps)*self.total_chirp_duration-self.chirp_offtime
+        self.t = np.linspace(0,total_frame_time,int((self.fs*total_frame_time)))
+        frame = np.zeros_like(self.t)
+
+        # writing frame data
+        for chirp_no in range(self.no_chirps):
+            chirp_start, chirp_end = self.get_chirp_range(chirp_no)
+
+            valid_t = self.t[chirp_start:chirp_end]
+            frame[chirp_start:chirp_end] = self.chirp_write(valid_t - self.t[chirp_start],self.data_frame[chirp_no])
+        
+        self.signal_frame = frame
+
+    def get_chirp_ranges(self):
+        start_times = np.array([self.offset + i*(self.total_chirp_duration) for i in range(self.no_chirps)])
+        end_times = np.array([start_times[i]+self.chirp_duration for i in range(self.no_chirps)])
+
+        start_indecies = (np.ceil(start_times*self.fs)).astype(int)
+        end_indecies = (np.floor(end_times*self.fs)).astype(int)
+
+        self.chirp_range_time = np.stack((start_times,end_times))
+        self.chirp_range_index = np.stack((start_indecies,end_indecies))
+
+
+    def GenerateOffsetRecievedFrame(self,data_frame):
+        
+        self.data_frame = data_frame
+        self.init_data_frame()
+
+    def snip_frame(self):
+        
+        frame = []
+        chirp_time_range = []
+        for recieving_chirp in range(self.no_chirps):
+            start_time = recieving_chirp * self.total_chirp_duration
+            end_time = start_time + self.chirp_duration
+
+            start_index = round(start_time*self.fs)
+            end_index = round(end_time*self.fs)
+
+            chirp_time_range.append((start_index, end_index))
+            frame.append(self.signal_frame[start_index:end_index])
+        
+        self.chirp_ranges = chirp_time_range
+        self.chirps = frame
+
+def data_encoder(t,data,IF,bandwidth):
+    f_data_increment = bandwidth/255
+    f_data = data * f_data_increment
+    chirp = sig.chirp(t,IF+f_data,t[-1],IF+f_data)
+    return chirp
+
+
+if __name__ == '__main__':
+    IF = 0.5e6
+    offset_ratio = 0.5
+    Fs = 10e6
+    bits_per_chirp = 8
+    chirp_off_ratio = 0.1
+
+    symbols = 2**bits_per_chirp
+    bandwidth = (Fs/2) - IF
+
+    chirp_duration = (1+chirp_off_ratio)*(symbols/bandwidth)
+    chirp_offtime = chirp_off_ratio * chirp_duration
+    offset_time = offset_ratio * chirp_duration
+
+    # encoding frame in frequency domain
+
+    transmission_string = "Hello World"
+    data = [ord(transmission_string[i]) for i in range(len(transmission_string))]
+
+    frame = OffsetFrame(IF,chirp_duration, offset_time,chirp_offtime,Fs,bandwidth,data_encoder)
+    frame.GenerateOffsetRecievedFrame(data)
+    frame.snip_frame()
+
+    # this section allows the frames to be ploted showing the same figures that are present in the other plots.
+    for i in range(frame.no_chirps):
+        plt.figure()
+        plt.plot(frame.t[frame.chirp_ranges[i][0]:frame.chirp_ranges[i][1]],frame.chirps[i])
+
+    plt.show() 
