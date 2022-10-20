@@ -61,7 +61,8 @@ if __name__ == "__main__":
     frame = DataFrame(200e6,5e6,10e6,512)
     frame.get_data_frame(data_string, 0)
 
-
+    # plotting the channel
+    combined_frame = 
 
     # decoding the data frame
 
