@@ -39,10 +39,10 @@ def IdealRecievedChirp(f0,flo,theta,f0_bandwidth,sample_rate,duration,noise=0.0,
 if __name__ == '__main__':
     
     # declaring variables
-    f0 = 205e6
+    f0 = 200e6
     f_lo = 200e6
     theta = (45/2)
-    f0_bandwidth = 100e6
+    f0_bandwidth = 10e6
 
     plot_start_indx = 100
     plot_duration = 400
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     sample_rate = n*final_sample_rate
 
     diff = np.abs(f0-f_lo)
-    duration = 10000/diff
+    duration = f0_bandwidth/(100*final_sample_rate)
     cut_off = 50e6
  
     # generating data
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     t_output = t[::n]
     output_signal = i_filt[::n] + q_filt[::n] * 1j
 
-    fig, axs = plt.subplots(4,1,figsize=(10,6))
+    fig, axs = plt.subplots(3,1,figsize=(10,6))
 
     plot_range = range(plot_start_indx, plot_duration+plot_start_indx)
 
@@ -81,11 +81,13 @@ if __name__ == '__main__':
     axs[0].plot(t[plot_range],sig1[plot_range],t[plot_range],sig2[plot_range])
     axs[1].set_title('Mixed signals')
     axs[1].plot(t[plot_range],i[plot_range])
-    axs[2].set_title('Inphase filtered signal')
+    axs[2].set_title('Filtered signal')
     axs[2].plot(t[plot_range],i_filt[plot_range])
-    axs[3].set_title('Quadrature filtered signal')
-    axs[3].plot(t[plot_range],q_filt[plot_range])
+    # axs[3].set_title('Quadrature filtered signal')
+    # axs[3].plot(t[plot_range],q_filt[plot_range])
     plt.subplots_adjust(hspace=0.6)
+    plt.xlabel("Time (s)")
+    plt.ylabel("amplitude/unit")
 
     plt.figure()
     f,t,sxx = sig.spectrogram(i,sample_rate)
@@ -101,5 +103,7 @@ if __name__ == '__main__':
     plt.figure()
     f,t,sxx = sig.spectrogram(i_filt[::n],final_sample_rate)
     plt.pcolormesh(t,f,sxx,shading='gouraud')
-
+    plt.title("Filtered and Down Sampled, Signal Spectrogram")
+    plt.xlabel('Time (s)')
+    plt.ylabel("Frequency (Hz)")
     plt.show()

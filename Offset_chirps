@@ -89,14 +89,15 @@ def data_encoder(t,data,IF,bandwidth):
 
 
 if __name__ == '__main__':
-    IF = 0.5e6
+    IF = 3e6
     offset_ratio = 0.5
     Fs = 10e6
     bits_per_chirp = 8
     chirp_off_ratio = 0.1
 
     symbols = 2**bits_per_chirp
-    bandwidth = (Fs/2) - IF
+    # bandwidth = (Fs/2) - IF
+    bandwidth = 4e6
 
     chirp_duration = (1+chirp_off_ratio)*(symbols/bandwidth)
     chirp_offtime = chirp_off_ratio * chirp_duration
@@ -109,11 +110,22 @@ if __name__ == '__main__':
 
     frame = OffsetFrame(IF,chirp_duration, offset_time,chirp_offtime,Fs,bandwidth,data_encoder)
     frame.GenerateOffsetRecievedFrame(data)
-    frame.snip_frame()
 
     # this section allows the frames to be ploted showing the same figures that are present in the other plots.
-    for i in range(frame.no_chirps):
-        plt.figure()
-        plt.plot(frame.t[frame.chirp_ranges[i][0]:frame.chirp_ranges[i][1]],frame.chirps[i])
+    plt.figure()
+    f,t,sxx = sig.spectrogram(frame.signal_frame,Fs)
+    plt.pcolormesh(t,f,sxx,shading='gouraud')
+    plt.xlabel("Time (s)")
+    plt.ylabel("Frequency (Hz)")
+    plt.title("Hello World Spectrogram")
 
-    plt.show() 
+    # t = np.linspace(0,len(frame.signal_frame)/Fs,len(frame.signal_frame))
+    # plt.figure()
+
+    # plt.plot(t,frame.signal_frame)
+    # plt.xlabel("Time (s)")
+    # plt.ylabel("Amplitude")
+
+    # plt.title("Hello World Time Domain")
+    plt.show()
+    
