@@ -8,7 +8,7 @@ clear all; close all; clc;
 
 files = ["adc_data(1).bin"];
 
-% files = ["test_data/adc_data_Increment.bin","adc_data(2).bin"];
+% files = ["adc_data(2).bin"];
 
 % files = ["test_data/adc_data_Increment.bin"];
 
@@ -50,17 +50,25 @@ for i = 1:tests
 %     spectrogram(x,64,32,100,Fs,"yaxis");
     title("Recieved Chirp Spectrogram")
     
+
+    text = 'Hello World';
+    [ascii,IF,Bandwidth] = freq2text(received_frame, text);
+
+    expected_frequencies = ascii*Bandwidth/255+IF;
+    
     k = 1:length(frame);
     subplot(2,1,2)
     plot(k,frame)
     title('Measured Chirp')
-    xlabel('Time')
+    xlabel('Sample')
     ylabel('Frequency')
+    
     hold on
     for j = 1:length(T)
         start = T(j);
         ki = start:start+min_frame;
         plot(ki,ki.*0+received_frame(j),'r-','linewidth',2)
+        
     end
     hold off
     
@@ -69,9 +77,7 @@ for i = 1:tests
     title("Experimental Spectrogram")
 end
 
-text = 'Hello World';
-[ascii,IF,Bandwidth] = freq2text(received_frame, text);
-char(round2set(ascii,double(text)))
+
 
 error = received_frame - text2freq(text,IF, Bandwidth);
 

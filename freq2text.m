@@ -5,7 +5,7 @@ function [ascii, IF, Bw] = freq2text(frame, text)
     IF0 = 3e6;
     bandwidth0 = 4e6;
     x0 = [IF0,bandwidth0];
-    x = fminsearch(@(x0) abs(sum(frame-text2freq(text,x0(1),x0(2)))),x0);
+    x = fminsearch(@(x0) (sum((frame-text2freq(text,x0(2),x0(1))).^2)),x0);
     
     IF = x(1);
     bandwidth = x(2);

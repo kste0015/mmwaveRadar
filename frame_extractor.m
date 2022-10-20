@@ -6,13 +6,13 @@ clear all; close all; clc;
 %     "test_data/adc_data_3MHz.bin", "test_data/adc_data_4MHz.bin", ...
 %     "test_data/adc_data_5MHz.bin", "test_data/adc_data_Increment.bin"];
 
-% files = ["adc_data(1).bin"];
+files = ["adc_data(1).bin"];
 
-files = ["adc_data(2).bin"];
+% files = ["adc_data(2).bin"];
 
 % files = ["test_data/adc_data_Increment.bin"];
 
-frame_size = 12740;
+frame_size = 11240;
 tests = length(files);
 
 Fs = 10e6;
@@ -50,17 +50,30 @@ for i = 1:tests
 %     spectrogram(x,64,32,100,Fs,"yaxis");
     title("Recieved Chirp Spectrogram")
     
+
+    text = 'Hello World';
+    [ascii,IF,Bandwidth] = freq2text(received_frame, text);
+
+    expected_frequencies = ascii*Bandwidth/255+IF;
+    
+    actual_frequencies = text2freq(text,Bandwidth, IF);
+    
     k = 1:length(frame);
     subplot(2,1,2)
     plot(k,frame)
     title('Measured Chirp')
     xlabel('Sample')
     ylabel('Frequency')
+    
     hold on
     for j = 1:length(T)
         start = T(j);
         ki = start:start+min_frame;
-        plot(ki,ki.*0+received_frame(j),'r-','linewidth',2)
+        plot(ki,ki.*0+received_frame(j),'r-','linewidth',1)
+        plot(ki,ki.*0+expected_frequencies(j),'b-','linewidth',1)
+        plot(ki,ki.*0+actual_frequencies(j),'g-','linewidth',1)
+
+        
     end
     hold off
     
@@ -69,12 +82,11 @@ for i = 1:tests
     title("Experimental Spectrogram")
 end
 
-% text = 'Hello World';
-% [ascii,IF,Bandwidth] = freq2text(received_frame, text);
-% char(round2set(ascii,double(text)))
-% 
-% error = received_frame - text2freq(text,IF, Bandwidth);
 
-% figure
-% histogram(error)
-% title("Histogram of (Predicted - Observed) frequency")
+
+error = received_frame - text2freq(text,Bandwidth, IF);
+
+char(ascii)
+figure
+histogram(error)
+title("Histogram of (Predicted - Observed) frequency")
